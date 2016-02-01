@@ -20,6 +20,7 @@ get_country_code() {
         return 1
     fi
     
+    echo "Country code: $country_code"
     return 0
 }
 
@@ -46,11 +47,26 @@ get_torrc_path(){
         return 1
     fi
     
+    echo "Path: $torrc_path"
+    return 0
+}
+
+change_country(){
+    if [ -r $torrc_path ] && [ -w $torrc_path ]
+    then
+        grep -v "^ExitNodes" $torrc_path > temp
+        echo "ExitNodes {$country_code}" >> temp
+        mv temp $torrc_path
+    else
+        echo "You don't have permissions to read or write the torrc file."
+        return 1
+    fi
+    
+    echo "Tor will now use the specified location."
     return 0
 }
 
 
 get_country_code $1
-echo $country_code
 get_torrc_path
-echo $torrc_path
+change_country
