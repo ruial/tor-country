@@ -24,7 +24,7 @@ get_country_code() {
     return 0
 }
 
-get_torrc_path(){
+get_torrc_path() {
     torrc_path=$(find / -type f -iwholename "*/Browser/TorBrowser/Data/Tor/torrc" 2>/dev/null)
     if [ "$torrc_path" ]
     then
@@ -51,7 +51,7 @@ get_torrc_path(){
     return 0
 }
 
-change_country(){
+change_country() {
     if [ -r $torrc_path ] && [ -w $torrc_path ]
     then
         grep -v "^ExitNodes" $torrc_path > temp
@@ -62,11 +62,15 @@ change_country(){
         return 1
     fi
     
-    echo "Tor will now use the specified location."
+    echo "Tor will now use the specified country."
     return 0
 }
 
+if [ $# -eq 1 ]
+then
+    search_country=$1
+else
+    read -p "Country name to search: " search_country
+fi
 
-get_country_code $1
-get_torrc_path
-change_country
+get_country_code $search_country && get_torrc_path && change_country
