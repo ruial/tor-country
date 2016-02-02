@@ -6,8 +6,7 @@ get_country_code() {
     if [ "$country" ]
     then
     
-        lines=$(echo "$country" | wc -l)
-        if [ $lines -eq 1 ]
+        if [ $(echo "$country" | wc -l) -eq 1 ]
         then
             country_code=$(echo $country | rev | cut -d "," -f1 | rev)
         else
@@ -29,17 +28,17 @@ get_torrc_path() {
     if [ "$torrc_path" ]
     then
         
-        lines=$(echo "$torrc_path" | wc -l)
-        if [ $lines -gt 1 ]
+        if [ $(echo "$torrc_path" | wc -l) -gt 1 ]
         then
-            counter=0;
-            for path in $torrc_path
+            echo "Chose the correct path:"
+            select path in $torrc_path
             do
-                counter=$((counter + 1))
-                echo "$counter- $path"
+                if [ $path ]
+                then
+                    torrc_path=$path
+                    break;
+                fi
             done
-            read -p "Chose the correct path: " op
-            torrc_path=$(echo "$torrc_path" | head -$op | tail -1)
         fi
         
     else
@@ -62,7 +61,7 @@ change_country() {
         return 1
     fi
     
-    echo "Tor will now use the specified country."
+    echo "You might need to restart Tor to apply the changes."
     return 0
 }
 
