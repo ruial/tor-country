@@ -2,15 +2,15 @@
 # Shell script to change Tor exit node country
 
 get_country_code() {
-    country=$(grep -i "$1" data.csv)
-    if [ "$country" ]
+    country_data=$(grep -i "$1" data.csv)
+    if [ "$country_data" ]
     then
     
-        if [ $(echo "$country" | wc -l) -eq 1 ]
+        if [ $(echo "$country_data" | wc -l) -eq 1 ]
         then
-            country_code=$(echo $country | rev | cut -d "," -f1 | rev)
+            country_code=$(echo $country_data | rev | cut -d "," -f1 | rev)
         else
-            echo -e "Multiple countries matched:\n$country"
+            echo -e "Multiple countries matched:\n$country_data"
             return 1
         fi
         
@@ -24,7 +24,7 @@ get_country_code() {
 }
 
 get_torrc_path() {
-    torrc_path=$(find / -type f -iwholename "*/Browser/TorBrowser/Data/Tor/torrc" 2>/dev/null)
+    torrc_path=$(find / -type f -iwholename "*/Tor/torrc" 2>/dev/null)
     if [ "$torrc_path" ]
     then
         
@@ -67,9 +67,9 @@ change_country() {
 
 if [ $# -eq 1 ]
 then
-    search_country=$1
+    country=$1
 else
-    read -p "Country name to search: " search_country
+    read -p "Country name to search: " country
 fi
 
-get_country_code $search_country && get_torrc_path && change_country
+get_country_code $country && get_torrc_path && change_country
