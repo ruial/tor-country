@@ -1,6 +1,9 @@
 #!/bin/bash
 # Shell script to change Tor exit node country
 
+IFS=$'\n'
+PS3="Chose the correct path: "
+
 get_country_code() {
     country_data=$(grep -i "$1" data.csv)
     if [ "$country_data" ]
@@ -30,13 +33,12 @@ get_torrc_path() {
         
         if [ $(echo "$torrc_path" | wc -l) -gt 1 ]
         then
-            echo "Chose the correct path:"
             select path in $torrc_path
             do
-                if [ $path ]
+                if [ "$path" ]
                 then
                     torrc_path=$path
-                    break;
+                    break
                 fi
             done
         fi
