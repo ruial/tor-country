@@ -2,20 +2,26 @@
 # Shell script to change Tor exit node country
 
 IFS=$'\n'
-PS3="Chose the correct path: "
+PS3="Chose the country: "
 
 get_country_code() {
     country_data=$(grep -i "$1" data.csv)
     if [ "$country_data" ]
     then
-    
-        if [ $(echo "$country_data" | wc -l) -eq 1 ]
+        
+        if [ $(echo "$country_data" | wc -l) -gt 1 ]
         then
-            country_code=$(echo $country_data | rev | cut -d "," -f1 | rev)
-        else
-            echo -e "Multiple countries matched:\n$country_data"
-            return 1
+            select country in $country_data
+            do
+                if [ "$country" ]
+                then
+                    country_data=$country
+                    break
+                fi
+            done
         fi
+        
+        country_code=$(echo $country_data | rev | cut -d "," -f1 | rev)
         
     else
         echo "Could not find country."
@@ -28,40 +34,28 @@ get_country_code() {
 
 get_torrc_path() {
     torrc_path=$(find / -type f -iwholename "*/Tor/torrc" 2>/dev/null)
-    if [ "$torrc_path" ]
+    if [ ! "$torrc_path" ]
     then
-        
-        if [ $(echo "$torrc_path" | wc -l) -gt 1 ]
-        then
-            select path in $torrc_path
-            do
-                if [ "$path" ]
-                then
-                    torrc_path=$path
-                    break
-                fi
-            done
-        fi
-        
-    else
         echo "The torrc file was not found."
         return 1
     fi
-    
-    echo "Path: $torrc_path"
+    echo -e "Paths found:\n$torrc_path"
     return 0
 }
 
 change_country() {
-    if [ -r $torrc_path ] && [ -w $torrc_path ]
-    then
-        grep -v "^ExitNodes" $torrc_path > temp
-        echo "ExitNodes {$country_code}" >> temp
-        mv temp $torrc_path
-    else
-        echo "You don't have permissions to read or write the torrc file."
-        return 1
-    fi
+    for path in $torrc_path
+    do
+        if [ -r $path ] && [ -w $path ]
+        then
+            grep -v "^ExitNodes" $path > temp
+            if [ "$country_name" != "all" ]
+            then
+                echo "ExitNodes {$country_code}" >> temp
+            fi
+            mv temp $path
+        fi
+    done
     
     echo "You might need to restart Tor to apply the changes."
     return 0
@@ -69,9 +63,10 @@ change_country() {
 
 if [ $# -eq 1 ]
 then
-    country=$1
+    country_name=$1
 else
-    read -p "Country name to search: " country
+    read -p "Country name to search: " country_name
 fi
 
-get_country_code $country && get_torrc_path && change_country
+
+test $country_name = "all" || get_country_code $country_name && get_torrc_path && change_country
